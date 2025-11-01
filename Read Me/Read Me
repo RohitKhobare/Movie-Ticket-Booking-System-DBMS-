@@ -1,0 +1,16 @@
+Read 
+
+PS C:\Users\Admin> cd C:\Users\Admin\Desktop\Rohit\Project\DBMS-Movie-Ticket-Booking-System-master
+PS C:\Users\Admin\Desktop\Rohit\Project\DBMS-Movie-Ticket-Booking-System-master> python -m venv venv
+PS C:\Users\Admin\Desktop\Rohit\Project\DBMS-Movie-Ticket-Booking-System-master> .\venv\Scripts\Activate.ps1
+(venv) PS C:\Users\Admin\Desktop\Rohit\Project\DBMS-Movie-Ticket-Booking-System-master> python -c "import tkinter; print('tkinter OK')"
+tkinter OK
+
+ pip install customtkinter
+ 
+ pip install flask
+ 
+(venv) PS C:\Users\Admin\Desktop\Rohit\Project\DBMS-Movie-Ticket-Booking-System-master> cd web_app
+(venv) PS C:\Users\Admin\Desktop\Rohit\Project\DBMS-Movie-Ticket-Booking-System-master\web_app> python app.py
+
+(venv) PS C:\Users\Admin\Desktop\Rohit\Project\DBMS-Movie-Ticket-Booking-System-master> python frontend_pyqt.py

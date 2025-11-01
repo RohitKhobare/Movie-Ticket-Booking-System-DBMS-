@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Movie Ticket Booking</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body class="bg-dark text-light">
+  <nav class="navbar navbar-dark bg-dark shadow-sm">
+    <div class="container-fluid">
+      <a class="navbar-brand fs-3" href="#">🎬 Movie Ticket Booking</a>
+    </div>
+  </nav>
+
+  <div class="container-fluid mt-4">
+    <div class="row g-3">
+      <div class="col-lg-4">
+        <div class="card bg-secondary text-light shadow-sm">
+          <div class="card-body">
+            <h5 class="card-title">Add / Update Movie</h5>
+            <form id="movieForm">
+              <div class="mb-2">
+                <label class="form-label">Movie ID</label>
+                <input id="movie_id" class="form-control" required>
+              </div>
+              <div class="mb-2">
+                <label class="form-label">Name</label>
+                <input id="name" class="form-control" required>
+              </div>
+              <div class="row g-2">
+                <div class="col">
+                  <input id="date" class="form-control" placeholder="Release Date">
+                </div>
+                <div class="col">
+                  <input id="director" class="form-control" placeholder="Director">
+                </div>
+              </div>
+              <div class="mb-2 mt-2">
+                <input id="cast" class="form-control" placeholder="Cast (comma separated)">
+              </div>
+              <div class="row g-2">
+                <div class="col">
+                  <input id="budget" class="form-control" placeholder="Budget (Cr)">
+                </div>
+                <div class="col">
+                  <input id="duration" class="form-control" placeholder="Duration (Hrs)">
+                </div>
+                <div class="col">
+                  <input id="rating" class="form-control" placeholder="Rating">
+                </div>
+              </div>
+              <div class="d-flex gap-2 mt-3">
+                <button type="button" id="addBtn" class="btn btn-warning">Add</button>
+                <button type="button" id="updateBtn" class="btn btn-outline-warning">Update</button>
+                <button type="reset" class="btn btn-secondary">Clear</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="card bg-secondary text-light mt-3">
+          <div class="card-body">
+            <h6>Search</h6>
+            <div class="input-group">
+              <input id="searchQuery" class="form-control" placeholder="Type name or ID">
+              <button id="searchBtn" class="btn btn-outline-light">Search</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="col-lg-8">
+        <div class="card bg-secondary text-light">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h5>Movies</h5>
+              <button id="refresh" class="btn btn-sm btn-light">Refresh</button>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-dark table-striped align-middle" id="moviesTable">
+                <thead>
+                  <tr>
+                    <th>#</th><th>M_ID</th><th>Name</th><th>Director</th><th>Budget</th><th>Duration</th><th>Rating</th><th>Action</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+const api = axios.create({ baseURL: '/api' });
+
+async function refresh() {
+  const res = await api.get('/movies');
+  const rows = res.data;
+  const tbody = document.querySelector("#moviesTable tbody");
+  tbody.innerHTML = "";
+  rows.forEach(r=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${r.dbid}</td><td>${r.movie_id}</td><td>${r.name}</td><td>${r.director}</td><td>${r.budget}</td><td>${r.duration}</td><td>${r.rating}</td>
+      <td>
+        <button class="btn btn-sm btn-outline-light me-1" onclick="loadToForm(${r.dbid})">Edit</button>
+        <button class="btn btn-sm btn-danger" onclick="del(${r.dbid})">Delete</button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+async function add() {
+  const payload = {
+    movie_id: document.getElementById('movie_id').value,
+    name: document.getElementById('name').value,
+    date: document.getElementById('date').value,
+    director: document.getElementById('director').value,
+    cast: document.getElementById('cast').value,
+    budget: document.getElementById('budget').value,
+    duration: document.getElementById('duration').value,
+    rating: document.getElementById('rating').value
+  };
+  await api.post('/movie', payload);
+  await refresh();
+  document.getElementById('movieForm').reset();
+}
+
+async function del(dbid) {
+  if (!confirm('Delete?')) return;
+  await api.delete('/movie/'+dbid);
+  await refresh();
+}
+
+async function loadToForm(dbid) {
+  const res = await api.get('/movies');
+  const r = res.data.find(x=>x.dbid===dbid);
+  if (!r) return;
+  document.getElementById('movie_id').value = r.movie_id;
+  document.getElementById('name').value = r.name;
+  document.getElementById('date').value = r.date;
+  document.getElementById('director').value = r.director;
+  document.getElementById('cast').value = r.cast;
+  document.getElementById('budget').value = r.budget;
+  document.getElementById('duration').value = r.duration;
+  document.getElementById('rating').value = r.rating;
+  // store selected DB id for update
+  document.getElementById('movieForm').dataset.dbid = dbid;
+}
+
+async function update() {
+  const dbid = document.getElementById('movieForm').dataset.dbid;
+  if (!dbid) return alert("Select a record to update (Edit).");
+  const payload = {
+    movie_id: document.getElementById('movie_id').value,
+    name: document.getElementById('name').value,
+    date: document.getElementById('date').value,
+    director: document.getElementById('director').value,
+    cast: document.getElementById('cast').value,
+    budget: document.getElementById('budget').value,
+    duration: document.getElementById('duration').value,
+    rating: document.getElementById('rating').value
+  };
+  await api.put('/movie/' + dbid, payload);
+  await refresh();
+  document.getElementById('movieForm').reset();
+  delete document.getElementById('movieForm').dataset.dbid;
+}
+
+document.getElementById('addBtn').onclick = add;
+document.getElementById('refresh').onclick = refresh;
+document.getElementById('searchBtn').onclick = async ()=> {
+  const q = document.getElementById('searchQuery').value;
+  const res = await api.get('/search', { params: { name: q, movie_id: q }});
+  const tbody = document.querySelector("#moviesTable tbody");
+  tbody.innerHTML = "";
+  res.data.forEach(r=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${r.dbid}</td><td>${r.movie_id}</td><td>${r.name}</td><td>${r.director}</td><td>${r.budget}</td><td>${r.duration}</td><td>${r.rating}</td>
+      <td><button class="btn btn-sm btn-outline-light" onclick="loadToForm(${r.dbid})">Edit</button>
+          <button class="btn btn-sm btn-danger" onclick="del(${r.dbid})">Delete</button></td>`;
+    tbody.appendChild(tr);
+  });
+};
+document.getElementById('updateBtn').onclick = update;
+
+window.onload = refresh;
+</script>
+</body>
+</html>
